@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Farm Management App Prototype</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        :root {
+            --primary-color: #22c55e; /* green-500 */
+            --primary-hover: #16a34a; /* green-600 */
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0fdf4; /* green-50 */
+        }
+        .dashboard-card {
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 4px H12px rgba(0,0,0,0.05);
+            transition: transform 0.2s;
+        }
+        .dashboard-card:hover {
+            transform: translateY(-4px);
+        }
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        .btn-primary:hover {
+            background-color: var(--primary-hover);
+        }
+        .page { display: none; }
+        .active-page { display: block; }
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid var(--primary-color);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .chatbot-window {
+            height: 60vh;
+            max-height: 450px;
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Main Application Container -->
+    <div id="app-container" class="max-w-7xl mx-auto p-4 md:p-6">
+
+        <!-- Header (Shared) -->
+        <header class="bg-white/80 backdrop-blur-lg p-3 rounded-xl shadow-md sticky top-4 z-40 flex justify-between items-center mb-6">
+            <div class="flex items-center space-x-3">
+                <img src="https://placehold.co/40x40/22c55e/ffffff?text=FM" alt="Logo" class="rounded-full">
+                <h1 class="text-xl md:text-2xl font-bold text-green-700">Farm Management</h1>
+            </div>
+            <div id="helpline-banner" class="hidden md:flex items-center space-x-2 text-sm font-semibold text-green-800 bg-green-100 px-4 py-2 rounded-lg">
+                <i data-lucide="phone"></i>
+                <a href="tel:18001801551" data-lang-key="helpline">Govt. Helpline: 1800-180-1551</a>
+            </div>
+        </header>
+
+        <!-- Loading Screen -->
+        <div id="loading-page" class="page active-page flex flex-col items-center justify-center min-h-[70vh]">
+            <div class="loader"></div>
+            <p class="mt-4 text-slate-600 font-semibold">Loading Application...</p>
+        </div>
+
+        <!-- Language/Role Selection Screen -->
+        <div id="selection-page" class="page">
+            <div class="bg-white p-8 rounded-2xl shadow-lg max-w-lg mx-auto">
+                <h2 class="text-2xl font-bold text-center mb-2">Welcome!</h2>
+                <p class="text-slate-600 text-center mb-6">Please select your language and role to begin.</p>
+                
+                <!-- Language Selector -->
+                <div class="mb-6">
+                    <label for="language-select" class="block text-sm font-medium text-slate-700 mb-1">Language</label>
+                    <select id="language-select" class="w-full p-3 border-gray-300 rounded-lg shadow-sm focus:ring-green-500 focus:border-green-500">
+                        <option value="en">English</option>
+                        <option value="hi">हिन्दी (Hindi)</option>
+                        <option value="pa">ਪੰਜਾਬੀ (Punjabi)</option>
+                        <option value="ta">தமிழ் (Tamil)</option>
+                        <option value="te">తెలుగు (Telugu)</option>
+                        <option value="bn">বাংলা (Bengali)</option>
+                    </select>
+                </div>
+
+                <!-- Role Selector -->
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-2">Your Role</label>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <button id="role-farmer-btn" class="p-6 border-2 rounded-lg text-xl font-semibold flex items-center justify-center hover:bg-green-50 hover:border-green-400">
+                            <i data-lucide="tractor" class="mr-3"></i> <span data-lang-key="farmer_role">Farmer</span>
+                        </button>
+                        <button id="role-controller-btn" class="p-6 border-2 rounded-lg text-xl font-semibold flex items-center justify-center hover:bg-green-50 hover:border-green-400">
+                            <i data-lucide="building-2" class="mr-3"></i> <span data-lang-key="controller_role">Controller</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Farmer Dashboard -->
+        <main id="farmer-dashboard" class="page">
+             <h2 class="text-3xl font-bold text-slate-800 mb-6" data-lang-key="farmer_dashboard_title">Farmer Dashboard</h2>
+             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Left Column -->
+                <div class="lg:col-span-2 space-y-6">
+                    <div class="dashboard-card p-6">
+                        <h3 class="text-xl font-bold text-slate-800 mb-4" data-lang-key="location_dashboard">Location-Based Dashboard</h3>
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                            <div><i data-lucide="sun" class="w-10 h-10 mx-auto text-yellow-500"></i><p class="font-semibold mt-2">29°C</p><p class="text-sm text-slate-500" data-lang-key="weather">Weather</p></div>
+                            <div><i data-lucide="wind" class="w-10 h-10 mx-auto text-blue-500"></i><p class="font-semibold mt-2">15 km/h</p><p class="text-sm text-slate-500" data-lang-key="wind">Wind</p></div>
+                            <div><i data-lucide="layers" class="w-10 h-10 mx-auto text-amber-700"></i><p class="font-semibold mt-2" data-lang-key="soil_type_value">Alluvial</p><p class="text-sm text-slate-500" data-lang-key="soil_type">Soil Type</p></div>
+                            <div><i data-lucide="sprout" class="w-10 h-10 mx-auto text-green-600"></i><p class="font-semibold mt-2" data-lang-key="best_crops_value">Wheat, Rice</p><p class="text-sm text-slate-500" data-lang-key="best_crops">Best Crops</p></div>
+                        </div>
+                    </div>
+                     <div class="dashboard-card p-6">
+                        <h3 class="text-xl font-bold text-slate-800 mb-4" data-lang-key="kendra_locator">Krishi Kendras Near You (50km)</h3>
+                        <div class="flex flex-col md:flex-row gap-4">
+                            <div id="farmer-map-placeholder" class="w-full md:w-1/2 h-48 bg-slate-200 rounded-lg flex items-center justify-center"><p class="text-slate-500">Map Loading...</p></div>
+                            <ul id="kendra-list" class="w-full md:w-1/2 space-y-2"></ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column -->
+                <div class="space-y-6">
+                    <div class="dashboard-card p-6">
+                        <h3 class="text-xl font-bold text-slate-800 mb-4" data-lang-key="market_analyzer">Market Price Analyzer</h3>
+                        <div class="space-y-2">
+                            <div><strong>Wheat:</strong> ₹2,250/quintal <span class="text-green-600 text-sm">(+1.5%)</span></div>
+                            <div><strong>Cotton:</strong> ₹7,100/quintal <span class="text-red-600 text-sm">(-0.8%)</span></div>
+                            <a href="#" class="text-sm font-semibold text-green-600 hover:underline" data-lang-key="view_more">View more...</a>
+                        </div>
+                    </div>
+                    <div class="dashboard-card p-6">
+                        <h3 class="text-xl font-bold text-slate-800 mb-4" data-lang-key="order_supplies">Order Supplies</h3>
+                        <p class="text-sm text-slate-600 mb-4" data-lang-key="order_supplies_desc">Get government-rate pesticides & fertilizers delivered.</p>
+                        <button class="btn btn-primary w-full" data-lang-key="place_order">Place Order</button>
+                    </div>
+                    <div class="dashboard-card p-6 bg-green-100">
+                        <h3 class="text-xl font-bold text-green-800 mb-4" data-lang-key="sustainability_corner">Sustainability Corner</h3>
+                        <p class="text-sm text-green-700 mb-4" data-lang-key="sustainability_desc">Learn how to manage crop waste without burning.</p>
+                        <button class="btn bg-white text-green-800 w-full" data-lang-key="learn_more">Learn More</button>
+                    </div>
+                </div>
+             </div>
+        </main>
+        
+        <!-- Controller Dashboard -->
+        <main id="controller-dashboard" class="page">
+             <h2 class="text-3xl font-bold text-slate-800 mb-6" data-lang-key="controller_dashboard_title">Controller Dashboard</h2>
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Left Column -->
+                <div class="lg:col-span-2 space-y-6">
+                     <div class="dashboard-card p-6">
+                        <h3 class="text-xl font-bold text-slate-800 mb-4" data-lang-key="farms_nearby">Farms in 50km Radius</h3>
+                        <div class="flex flex-col md:flex-row gap-4">
+                            <div id="controller-map-placeholder" class="w-full md:w-1/2 h-64 bg-slate-200 rounded-lg flex items-center justify-center"><p class="text-slate-500">Map Loading...</p></div>
+                            <ul id="farm-list" class="w-full md:w-1/2 space-y-2"></ul>
+                        </div>
+                    </div>
+                </div>
+                <!-- Right Column -->
+                 <div class="space-y-6">
+                    <div class="dashboard-card p-6">
+                         <h3 class="text-xl font-bold text-slate-800 mb-4" data-lang-key="ai_diagnosis">AI Diagnosis Panel</h3>
+                         <p class="text-sm text-slate-600 mb-4" data-lang-key="ai_diagnosis_desc">Upload a farm image for instant analysis on pests, diseases, and fertilizer needs.</p>
+                         <div id="image-upload-area" class="border-2 border-dashed border-slate-300 rounded-lg p-6 text-center">
+                            <i data-lucide="upload-cloud" class="w-12 h-12 mx-auto text-slate-400"></i>
+                            <p class="mt-2 text-sm text-slate-500" data-lang-key="drag_drop">Drag & drop or click to upload</p>
+                            <input type="file" class="hidden">
+                         </div>
+                         <button id="analyze-image-btn" class="btn btn-primary w-full mt-4" data-lang-key="analyze_image">Analyze Image</button>
+                         <div id="diagnosis-result" class="mt-4 text-sm hidden"></div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Chatbot Floating Button and Modal -->
+        <button id="chatbot-toggle" class="fixed bottom-6 right-6 bg-green-500 text-white p-4 rounded-full shadow-lg hover:bg-green-600 transition z-50">
+            <i data-lucide="bot"></i>
+        </button>
+        <div id="chatbot-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden items-center justify-center p-4">
+            <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg flex flex-col">
+                <div class="p-4 border-b flex justify-between items-center">
+                    <h3 class="text-lg font-bold text-slate-800 flex items-center"><i data-lucide="bot" class="text-green-500 mr-2"></i><span data-lang-key="chatbot_title">AI Farm Assistant</span></h3>
+                    <button id="close-chatbot" class="text-slate-500 hover:text-slate-800 text-3xl font-bold">&times;</button>
+                </div>
+                <div id="chatbot-messages" class="p-4 chatbot-window overflow-y-auto">
+                    <!-- Messages will be injected here -->
+                </div>
+                <div class="p-4 border-t flex space-x-2">
+                    <input type="text" id="chatbot-input" class="w-full px-3 py-2 border rounded-md" placeholder="Ask a question...">
+                    <button id="chatbot-send" class="btn btn-primary !p-3"><i data-lucide="send"></i></button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- STATE MANAGEMENT ---
+            const state = {
+                language: 'en',
+                role: null, // 'farmer' or 'controller'
+            };
+
+            // --- TRANSLATIONS (i18n) ---
+            const translations = {
+                en: {
+                    helpline: 'Govt. Helpline: 1800-180-1551',
+                    farmer_role: 'Farmer',
+                    controller_role: 'Controller',
+                    farmer_dashboard_title: 'Farmer Dashboard',
+                    controller_dashboard_title: 'Controller Dashboard',
+                    location_dashboard: 'Location-Based Dashboard',
+                    weather: 'Weather',
+                    wind: 'Wind',
+                    soil_type: 'Soil Type',
+                    soil_type_value: 'Alluvial',
+                    best_crops: 'Best Crops',
+                    best_crops_value: 'Wheat, Rice',
+                    kendra_locator: 'Krishi Kendras Near You (50km)',
+                    market_analyzer: 'Market Price Analyzer',
+                    view_more: 'View more...',
+                    order_supplies: 'Order Supplies',
+                    order_supplies_desc: 'Get government-rate pesticides & fertilizers delivered.',
+                    place_order: 'Place Order',
+                    sustainability_corner: 'Sustainability Corner',
+                    sustainability_desc: 'Learn how to manage crop waste without burning.',
+                    learn_more: 'Learn More',
+                    farms_nearby: 'Farms in 50km Radius',
+                    ai_diagnosis: 'AI Diagnosis Panel',
+                    ai_diagnosis_desc: 'Upload a farm image for instant analysis on pests, diseases, and fertilizer needs.',
+                    drag_drop: 'Drag & drop or click to upload',
+                    analyze_image: 'Analyze Image',
+                    chatbot_title: 'AI Farm Assistant'
+                },
+                hi: {
+                    helpline: 'सरकारी हेल्पलाइन: 1800-180-1551',
+                    farmer_role: 'किसान',
+                    controller_role: 'नियंत्रक',
+                    farmer_dashboard_title: 'किसान डैशबोर्ड',
+                    controller_dashboard_title: 'नियंत्रक डैशबोर्ड',
+                    location_dashboard: 'स्थान-आधारित डैशबोर्ड',
+                    weather: 'मौसम',
+                    wind: 'हवा',
+                    soil_type: 'मिट्टी का प्रकार',
+                    soil_type_value: 'जलोढ़',
+                    best_crops: 'उत्तम फसलें',
+                    best_crops_value: 'गेहूँ, चावल',
+                    kendra_locator: 'आपके पास कृषि केंद्र (50 किमी)',
+                    market_analyzer: 'बाजार मूल्य विश्लेषक',
+                    view_more: 'और देखें...',
+                    order_supplies: 'आपूर्ति का आदेश दें',
+                    order_supplies_desc: 'सरकारी दर पर कीटनाशक और उर्वरक प्राप्त करें।',
+                    place_order: 'आदेश दें',
+                    sustainability_corner: 'सस्टेनेबिलिटी कॉर्नर',
+                    sustainability_desc: 'फसल अवशेषों को बिना जलाए प्रबंधित करना सीखें।',
+                    learn_more: 'और जानें',
+                    farms_nearby: '50 किमी के दायरे में खेत',
+                    ai_diagnosis: 'एआई निदान पैनल',
+                    ai_diagnosis_desc: 'कीटों, बीमारियों और उर्वरक की जरूरतों पर तत्काल विश्लेषण के लिए खेत की एक छवि अपलोड करें।',
+                    drag_drop: 'खींचें और छोड़ें या अपलोड करने के लिए क्लिक करें',
+                    analyze_image: 'छवि का विश्लेषण करें',
+                    chatbot_title: 'एआई कृषि सहायक'
+                },
+                // Add other languages here (Punjabi, Tamil, etc.)
+            };
+            
+            // --- MOCK DATA ---
+            const mockKendras = [
+                { name: 'Krishi Vigyan Kendra, Ludhiana', distance: '12 km' },
+                { name: 'PAU Extension Centre, Patiala', distance: '25 km' },
+                { name: 'District Agri Office, Moga', distance: '45 km' },
+            ];
+
+            const mockFarms = [
+                { name: "Singh's Wheat Farm", owner: 'G. Singh', crops: 'Wheat, Mustard' },
+                { name: 'Verma Vegetable Fields', owner: 'R. Verma', crops: 'Potato, Tomato' },
+                { name: 'Kaur Dairy & Agriculture', owner: 'H. Kaur', crops: 'Maize, Fodder' },
+            ];
+
+            // --- UI ELEMENTS ---
+            const loadingPage = document.getElementById('loading-page');
+            const selectionPage = document.getElementById('selection-page');
+            const farmerDashboard = document.getElementById('farmer-dashboard');
+            const controllerDashboard = document.getElementById('controller-dashboard');
+            const languageSelect = document.getElementById('language-select');
+            const roleFarmerBtn = document.getElementById('role-farmer-btn');
+            const roleControllerBtn = document.getElementById('role-controller-btn');
+            const chatbotToggle = document.getElementById('chatbot-toggle');
+            const chatbotModal = document.getElementById('chatbot-modal');
+            const closeChatbot = document.getElementById('close-chatbot');
+            const chatbotSend = document.getElementById('chatbot-send');
+            const chatbotInput = document.getElementById('chatbot-input');
+            const chatbotMessages = document.getElementById('chatbot-messages');
+            const analyzeImageBtn = document.getElementById('analyze-image-btn');
+            const diagnosisResult = document.getElementById('diagnosis-result');
+
+            // --- FUNCTIONS ---
+            const showPage = (page) => {
+                document.querySelectorAll('.page').forEach(p => p.classList.remove('active-page'));
+                page.classList.add('active-page');
+            };
+
+            const updateLanguage = () => {
+                state.language = languageSelect.value;
+                const langPack = translations[state.language] || translations.en;
+                document.querySelectorAll('[data-lang-key]').forEach(el => {
+                    const key = el.dataset.langKey;
+                    if (langPack[key]) {
+                        el.textContent = langPack[key];
+                    }
+                });
+            };
+
+            const populateLists = () => {
+                const kendraList = document.getElementById('kendra-list');
+                kendraList.innerHTML = mockKendras.map(k => `<li class="p-2 bg-slate-100 rounded-md text-sm"><strong>${k.name}</strong> - ${k.distance}</li>`).join('');
+
+                const farmList = document.getElementById('farm-list');
+                farmList.innerHTML = mockFarms.map(f => `<li class="p-2 bg-slate-100 rounded-md text-sm"><strong>${f.name}</strong> (${f.owner})<br><span class="text-xs text-slate-500">${f.crops}</span></li>`).join('');
+            };
+            
+            const addChatMessage = (message, sender) => {
+                const msgDiv = document.createElement('div');
+                msgDiv.className = `p-3 rounded-lg max-w-[80%] ${sender === 'user' ? 'bg-green-500 text-white self-end' : 'bg-slate-200 self-start'}`;
+                msgDiv.textContent = message;
+                chatbotMessages.appendChild(msgDiv);
+                chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
+            };
+
+            const handleSendMessage = () => {
+                const userMessage = chatbotInput.value.trim();
+                if (userMessage) {
+                    addChatMessage(userMessage, 'user');
+                    chatbotInput.value = '';
+                    // Simulate AI response
+                    setTimeout(() => {
+                        addChatMessage(`In ${state.language}, this is a simple answer about "${userMessage}". Government policies are available on the official agriculture portal.`, 'ai');
+                    }, 1000);
+                }
+            };
+            
+            const handleAnalyzeImage = () => {
+                diagnosisResult.classList.remove('hidden');
+                diagnosisResult.innerHTML = `<div class="loader mx-auto w-6 h-6"></div><p class="text-center mt-2">Analyzing...</p>`;
+                setTimeout(() => {
+                    diagnosisResult.innerHTML = `
+                        <p><strong>Diagnosis:</strong> Powdery Mildew (High Confidence)</p>
+                        <p><strong>Recommendation:</strong> Apply sulfur-based fungicide. Improve air circulation.</p>
+                        <p><strong>Home Remedy:</strong> Spray a solution of milk and water (1:10 ratio).</p>
+                    `;
+                }, 2000);
+            };
+
+            // --- INITIALIZATION ---
+            const init = () => {
+                lucide.createIcons();
+                showPage(selectionPage);
+                populateLists();
+
+                // Event Listeners
+                languageSelect.addEventListener('change', updateLanguage);
+
+                roleFarmerBtn.addEventListener('click', () => {
+                    state.role = 'farmer';
+                    showPage(farmerDashboard);
+                });
+
+                roleControllerBtn.addEventListener('click', () => {
+                    state.role = 'controller';
+                    showPage(controllerDashboard);
+                });
+
+                chatbotToggle.addEventListener('click', () => chatbotModal.classList.remove('hidden'));
+                closeChatbot.addEventListener('click', () => chatbotModal.classList.add('hidden'));
+                chatbotSend.addEventListener('click', handleSendMessage);
+                chatbotInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') handleSendMessage();
+                });
+                
+                analyzeImageBtn.addEventListener('click', handleAnalyzeImage);
+            };
+
+            // Simulate loading
+            setTimeout(init, 1000);
+        });
+    </script>
+</body>
+</html>
+
